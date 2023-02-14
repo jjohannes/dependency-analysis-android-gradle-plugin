@@ -222,7 +222,8 @@ internal fun Dependency.resolvedVersion(): String? = when (this) {
 internal fun Dependency.targetGradleVariantIdentification()  = when(this) {
   is ModuleDependency -> GradleVariantIdentification(
     requestedCapabilities.map { it.toGA() }.toSet(),
-    attributes.keySet().associate { it.name to attributes.getAttribute(it).toString() }
+    attributes.keySet().associate { it.name to attributes.getAttribute(it).toString() },
+    artifacts.firstOrNull()?.classifier
   )
   else -> GradleVariantIdentification(emptySet(), emptyMap())
 }

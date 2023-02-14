@@ -92,7 +92,7 @@ final class AdviceHelper {
   }
 
   private static GradleVariantIdentification defaultGVI(String capability) {
-    new GradleVariantIdentification(capability ? [capability] as Set : [] as Set, [:])
+    new GradleVariantIdentification(capability ? [capability] as Set : [] as Set, [:], null)
   }
 
   static final Set<ModuleAdvice> emptyModuleAdvice = []

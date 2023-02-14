@@ -16,13 +16,15 @@ final class ClassifierTestProject extends AbstractProject {
 
   final String variantCode
   final boolean nothingUsed
+  final boolean nothingUsedWithClassifier
   final GradleProject gradleProject
 
   enum TestProjectVariant {
     ONLY_MAIN_NEEDED,
     ONLY_CLASSIFIED_NEEDED,
     BOTH_NEEDED,
-    NON_NEEDED
+    NON_NEEDED,
+    ONLY_CLASSIFIED_DECLARED
   }
 
   ClassifierTestProject(TestProjectVariant variant) {
@@ -42,8 +44,11 @@ final class ClassifierTestProject extends AbstractProject {
         break
       case TestProjectVariant.NON_NEEDED: variantCode = ''
         break
+      case TestProjectVariant.ONLY_CLASSIFIED_DECLARED: variantCode = ''
+        break
     }
     this.nothingUsed = variant == TestProjectVariant.NON_NEEDED
+    this.nothingUsedWithClassifier = variant == TestProjectVariant.ONLY_CLASSIFIED_DECLARED
     this.gradleProject = build()
   }
 
@@ -53,7 +58,9 @@ final class ClassifierTestProject extends AbstractProject {
       s.sources = consumerTestSources()
       s.withBuildScript { bs ->
         bs.plugins = [Plugin.javaLibraryPlugin]
-        bs.dependencies = [
+        bs.dependencies = nothingUsedWithClassifier ? [
+          slf4jTests('testImplementation')
+        ] : [
           slf4j('testImplementation'),
           slf4jTests('testImplementation'),
         ]
@@ -83,11 +90,11 @@ final class ClassifierTestProject extends AbstractProject {
     return actualProjectAdvice(gradleProject)
   }
 
-  final Set<ProjectAdvice> expectedBuildHealth() {[
-    nothingUsed
-      ? projectAdviceForDependencies(':consumer', [
-        Advice.ofRemove(moduleCoordinates(slf4j('')), 'testImplementation'),
-      ] as Set)
-      : emptyProjectAdviceFor(':consumer')
-  ]}
+  final Set<ProjectAdvice> expectedBuildHealth() {
+    if (nothingUsed || nothingUsedWithClassifier) {
+      [projectAdviceForDependencies(':consumer', [Advice.ofRemove(moduleCoordinates(slf4j('')), 'testImplementation')] as Set)]
+    } else {
+      [emptyProjectAdviceFor(':consumer')]
+    }
+  }
 }

@@ -49,10 +49,15 @@ internal class AdvicePrinter(
     val mapped = dependencyMap(gav)
 
     return if (gav == mapped) {
+      val maybeWithClassifier = if (gradleVariantIdentification.classifier == null) {
+        mapped
+      } else {
+        "$mapped:${gradleVariantIdentification.classifier}"
+      }
       // If there's no map, include quotes
       when (dslKind) {
-        DslKind.KOTLIN -> "\"$mapped\""
-        DslKind.GROOVY -> "'$mapped'"
+        DslKind.KOTLIN -> "\"$maybeWithClassifier\""
+        DslKind.GROOVY -> "'$maybeWithClassifier'"
       }
     } else {
       // If the user is mapping, it's bring-your-own-quotes

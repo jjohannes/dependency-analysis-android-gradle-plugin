@@ -17,7 +17,11 @@ final class ClassifiersSpec extends AbstractJvmSpec {
     build(gradleVersion, gradleProject.rootDir, 'buildHealth')
 
     then:
-    assertThat(project.actualBuildHealth()).containsExactlyElementsIn(project.expectedBuildHealth())
+    def health = project.actualBuildHealth()
+    assertThat(health).containsExactlyElementsIn(project.expectedBuildHealth())
+    // Explicitly check classifier as it is ignored in coordinate comparison
+    if (variant == ClassifierTestProject.TestProjectVariant.ONLY_CLASSIFIED_DECLARED)
+      assertThat(health.first().dependencyAdvice.first().coordinates.gradleVariantIdentification.classifier).isEqualTo('tests')
 
     where:
     [gradleVersion, variant] << multivariableDataPipe(
